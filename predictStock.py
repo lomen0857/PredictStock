@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[11]:
-
-
 import datetime as dt
 import os.path
 import pickle
@@ -119,7 +113,7 @@ def predictStock():
     columns_unique_array
 
 
-    #予想用
+    #予想
     Xcolumns1 = pickle.load(open("max_Xcolumns1.sav","rb"))
     Xcolumns2 = pickle.load(open("max_Xcolumns2.sav","rb"))
     Xcolumns3 = pickle.load(open("max_Xcolumns3.sav","rb"))
@@ -167,7 +161,7 @@ def predictStock():
             errorStock_array.append(code)
             print("error")
 
-
+    #dif作成
     for code in columns_unique_array:
         print(code)
         
