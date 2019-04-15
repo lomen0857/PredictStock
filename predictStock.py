@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+
 # coding: utf-8
 
-# In[2]:
+# In[11]:
 
 
 import datetime as dt
@@ -247,12 +247,15 @@ def predictStock():
     ETF_df3 = ETF_df3.fillna(0)
 
     clf1 = pickle.load(open("max_clf1.sav","rb"))
+    clf1.n_jobs = -1
     pred1 = clf1.predict(ETF_df1)
 
     clf2 = pickle.load(open("max_clf2.sav","rb"))
+    clf2.n_jobs = -1
     pred2 = clf2.predict(ETF_df2)
 
     clf3 = pickle.load(open("max_clf3.sav","rb"))
+    clf3.n_jobs = -1
     pred3 = clf3.predict(ETF_df3)
 
     pred = 0
