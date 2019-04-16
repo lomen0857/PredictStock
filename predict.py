@@ -1,41 +1,97 @@
+def get_day_of_week_jp(dt):
+    w_list = ['月', '火', '水', '木', '金', '土', '日']
+    return(w_list[dt.weekday()])
+
 import predictStock
+import resultStock
+
 import postTweet
 import pandas as pd
+import numpy as np
 from datetime import datetime, date, timedelta
 
-pred = predictStock.predictStock()
+#次の日の予想
+nextDay_predict = predictStock.predictStock()
+#今日の1321の結果
+df_1321 = resultStock.resultStock()
 
-if pred > 0:
-    tweet = "上昇"
+if nextDay_predict > 0:
+    nextDay_predicd_str = "陽線"
 else:
-    tweet = "降下"
+    nextDay_predicd_str = "陰線"
 
+db = pd.read_csv("dataBase.csv",encoding="utf8",index_col='predictDate')
 
-predDay = datetime.today()
-predDayFormated = datetime.strftime(predDay,'%Y-%m-%d')
-predDayAdd1 = predDay + timedelta(days=1)
-predDayAdd1Formated = datetime.strftime(predDayAdd1,'%Y-%m-%d')
-predDayAdd1DayOfTheWeek = datetime.strftime(predDayAdd1,'%a')
+#日付準備
+thisDay = datetime.today()
+thisDay_Formated = datetime.strftime(thisDay,'%Y-%m-%d')
+thisDay_OfTheWeek = get_day_of_week_jp(thisDay)
+
+nextDay = thisDay + timedelta(days=1)
+nextDay_Formated = datetime.strftime(nextDay,'%Y-%m-%d')
+nextDay_OfTheWeek = get_day_of_week_jp(nextDay)
+
+previousDay = thisDay - timedelta(days=1)
+previousDay_Formated = datetime.strftime(previousDay,'%Y-%m-%d')
 
 holiday_df = pd.read_csv("holiday.csv",encoding="utf8")
 holiday_array = holiday_df.values
 
-#土日休日判定
-while predDayAdd1DayOfTheWeek == "Sat" or predDayAdd1DayOfTheWeek == "Sun" or predDayAdd1Formated in holiday_array:
-    predDayAdd1 = predDayAdd1 + timedelta(days=1)
-    predDayAdd1Formated = datetime.strftime(predDayAdd1,'%Y-%m-%d')
-    predDayAdd1DayOfTheWeek = datetime.strftime(predDayAdd1,'%a')
+#次営業日
+while nextDay_OfTheWeek == "土" or nextDay_OfTheWeek == "日" or nextDay_Formated in holiday_array:
+    nextDay = nextDay + timedelta(days=1)
+    nextDay_Formated = datetime.strftime(nextDay,'%Y-%m-%d')
+    nextDay_OfTheWeek = get_day_of_week_jp(nextDay)
 
-tweet = predDayAdd1Formated + "の予想は「" + tweet + "」です。"
+#前日した予想
+thisDay_predict = db.loc[thisDay_Formated, 'predict']
+if thisDay_predict == 1:
+    thisDay_predict_str = "陽線"
+else:
+    thisDay_predict_str = "陰線"
+
+#的中判定
+closeValue = df_1321.loc[thisDay_Formated,"Close"]
+openValue = df_1321.loc[thisDay_Formated,"Open"]
+differenceValue = closeValue - openValue
+if differenceValue >= 0:
+    thisDay_predict_Result = "陽線"
+else:
+    thisDay_predict_Result = "陰線"
+
+#的中回数
+hit_count = sum(list(db["hit"].fillna(0)))
+
+#利益
+sumValue = db.loc[previousDay_Formated,"sumValue"]
+
+tempValue = (1000000//openValue)*differenceValue
+
+if np.sign(differenceValue * thisDay_predict) == 1 or (differenceValue==0 and thisDay_predict==1):
+    #的中
+    hit = 1
+    hitRate = 100*(1 + hit_count)/len(db.index)
+    sumValue = sumValue + abs(tempValue)
+    thisDay_Predict_Result = "的中"
+else:
+    #不正解
+    hit = -1
+    hitRate = 100*(hit_count)/len(db.index)
+    sumValue = sumValue - abs(tempValue)
+    thisDay_Predict_Result = "ハズレ"
+
+differenceHitRate = hitRate - db.loc[previousDay_Formated,"hitRate"]
+
+
+tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n  予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n  的中率：" + str(hitRate) + "%(前回比" + str(differenceHitRate) + "%)\n  利益：" + str(sumValue) + "円"
 
 #ツイートメソッド呼び出し
 tweetResult = postTweet.postTweet(tweet)
 
-db = pd.read_csv("dataBase.csv",encoding="utf8",index_col='predictDate')
-predDay = datetime.today()
+predDayDetail = datetime.strftime(thisDay,'%Y-%m-%d %H:%M:%S')
 
-predDayFormated = datetime.strftime(predDay,'%Y-%m-%d')
-predDayDetail = datetime.strftime(predDay,'%Y-%m-%d %H:%M:%S')
-db.loc[predDayFormated] = [pred,"","","","",predDayDetail]
+db.loc[thisDay_Formated,"hit":"sumValue"] = [hit,hitRate,differenceValue,sumValue]
+db.loc[nextDay_Formated] = [nextDay_predict,"","","","",predDayDetail]
+
 
 db.to_csv("dataBase.csv")
