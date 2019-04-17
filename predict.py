@@ -89,7 +89,7 @@ else:
 differenceHitRate = hitRate - db.loc[previousDay_Formated,"hitRate"]
 
 
-tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n  予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n  的中率：" + str(hitRate) + "%(前回比" + str(differenceHitRate) + "%)\n  利益：" + str(sumValue) + "円"
+tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n  予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n  的中率：" + '{:.4}'.format(hitRate) + "%(前回比" + '{:.4}'.format(differenceHitRate) + "%)\n  利益：" + str(sumValue) + "円"
 
 #ツイートメソッド呼び出し
 tweetResult = postTweet.postTweet(tweet)
