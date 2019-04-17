@@ -4,21 +4,11 @@ def get_day_of_week_jp(dt):
 
 import predictStock
 import resultStock
-
+import sys
 import postTweet
 import pandas as pd
 import numpy as np
 from datetime import datetime, date, timedelta
-
-#次の日の予想
-nextDay_predict = predictStock.predictStock()
-#今日の1321の結果
-df_1321 = resultStock.resultStock()
-
-if nextDay_predict > 0:
-    nextDay_predicd_str = "陽線"
-else:
-    nextDay_predicd_str = "陰線"
 
 db = pd.read_csv("dataBase.csv",encoding="utf8",index_col='predictDate')
 
@@ -26,6 +16,10 @@ db = pd.read_csv("dataBase.csv",encoding="utf8",index_col='predictDate')
 thisDay = datetime.today()
 thisDay_Formated = datetime.strftime(thisDay,'%Y-%m-%d')
 thisDay_OfTheWeek = get_day_of_week_jp(thisDay)
+
+if not thisDay_Formated in db.index:
+    #非営業日のため実行終了
+    sys.exit()
 
 nextDay = thisDay + timedelta(days=1)
 nextDay_Formated = datetime.strftime(nextDay,'%Y-%m-%d')
@@ -49,6 +43,18 @@ if thisDay_predict == 1:
     thisDay_predict_str = "陽線"
 else:
     thisDay_predict_str = "陰線"
+
+
+#次の日の予想
+nextDay_predict = predictStock.predictStock()
+#今日の1321の結果
+df_1321 = resultStock.resultStock()
+
+if nextDay_predict > 0:
+    nextDay_predicd_str = "陽線"
+else:
+    nextDay_predicd_str = "陰線"
+
 
 #的中判定
 closeValue = df_1321.loc[thisDay_Formated,"Close"]
