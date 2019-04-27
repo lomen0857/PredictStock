@@ -65,9 +65,9 @@ else:
     thisDay_predict_Result = "陰線"
 
 #的中回数
-hit_count = sum(list(db["hit"].fillna(0)))
+hitCount = sum(list(db["hit"].fillna(0)))
 
-#利益
+#総利益
 sumValue = db.loc[previousDay_Formated,"sumValue"]
 
 tempValue = (1000000//openValue)*differenceValue
@@ -75,20 +75,22 @@ tempValue = (1000000//openValue)*differenceValue
 if np.sign(differenceValue * thisDay_predict) == 1 or (differenceValue==0 and thisDay_predict==1):
     #的中
     hit = 1
-    hitRate = 100*(1 + hit_count)/len(db.index)
-    sumValue = sumValue + abs(tempValue)
+    todayValue = abs(tempValue)
     thisDay_Predict_Result = "的中"
 else:
-    #不正解
+    #ハズレ
     hit = 0
-    hitRate = 100*(hit_count)/len(db.index)
-    sumValue = sumValue - abs(tempValue)
+    todayValue = -1 * abs(tempValue)
     thisDay_Predict_Result = "ハズレ"
 
+hitCount = hitCount + hit
+count = len(db.index)
+hitRate = 100*hitCount/count
+sumValue = sumValue + todayValue
 differenceHitRate = hitRate - db.loc[previousDay_Formated,"hitRate"]
-hitRate_Formated = '{:.4}'.format(hitRate) 
+hitRate_Formated = '{:.3f}'.format(hitRate) 
 
-tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n   予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n   的中率：" + hitRate_Formated + "%(前回比" + '{:.4}'.format(differenceHitRate) + "%)\n   利益：" + str(sumValue) + "円"
+tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n   予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n   的中率：" + hitRate_Formated + "%  (前回差：" + '{:+.3f}'.format(differenceHitRate) + "%)  (的中回数：" + '{:.0f}'.format(hitCount) + "/" + str(count) + "回)\n   総利益：" + '{:+,.0f}'.format(sumValue) + "円  (前回差：" + '{:+,.0f}'.format(todayValue) + "円)"
 
 #ツイートメソッド呼び出し
 tweetResult = postTweet.postTweet(tweet)
