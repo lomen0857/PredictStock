@@ -25,8 +25,7 @@ nextDay = thisDay + timedelta(days=1)
 nextDay_Formated = datetime.strftime(nextDay,'%Y-%m-%d')
 nextDay_OfTheWeek = get_day_of_week_jp(nextDay)
 
-previousDay = thisDay - timedelta(days=1)
-previousDay_Formated = datetime.strftime(previousDay,'%Y-%m-%d')
+previousDay_Formated = db.index[-2]
 
 holiday_df = pd.read_csv("holiday.csv",encoding="utf8")
 holiday_array = holiday_df.values
@@ -81,23 +80,24 @@ if np.sign(differenceValue * thisDay_predict) == 1 or (differenceValue==0 and th
     thisDay_Predict_Result = "的中"
 else:
     #不正解
-    hit = -1
+    hit = 0
     hitRate = 100*(hit_count)/len(db.index)
     sumValue = sumValue - abs(tempValue)
     thisDay_Predict_Result = "ハズレ"
 
 differenceHitRate = hitRate - db.loc[previousDay_Formated,"hitRate"]
+hitRate_Formated = '{:.4}'.format(hitRate) 
 
-
-tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n  予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n  的中率：" + '{:.4}'.format(hitRate) + "%(前回比" + '{:.4}'.format(differenceHitRate) + "%)\n  利益：" + str(sumValue) + "円"
+tweet = "◆" + nextDay_Formated +"("+ nextDay_OfTheWeek + ")の株価\n  「" + nextDay_predicd_str + "」と予想します。\n \n◆" + thisDay_Formated +"("+ thisDay_OfTheWeek + ")の株価\n   予想「" + thisDay_predict_str + "」、結果「"+ thisDay_predict_Result +"」のため" + thisDay_Predict_Result + "です。\n \n   的中率：" + hitRate_Formated + "%(前回比" + '{:.4}'.format(differenceHitRate) + "%)\n   利益：" + str(sumValue) + "円"
 
 #ツイートメソッド呼び出し
 tweetResult = postTweet.postTweet(tweet)
+#print(tweet)
 
-predDayDetail = datetime.strftime(thisDay,'%Y-%m-%d %H:%M:%S')
+thisDay_Detail = datetime.strftime(thisDay,'%Y-%m-%d %H:%M:%S')
 
-db.loc[thisDay_Formated,"hit":"sumValue"] = [hit,hitRate,differenceValue,sumValue]
-db.loc[nextDay_Formated] = [nextDay_predict,"","","","",predDayDetail]
+db.loc[thisDay_Formated,"hit":"sumValue"] = [hit,hitRate_Formated,differenceValue,sumValue]
+db.loc[nextDay_Formated] = [nextDay_predict,"","","","",thisDay_Detail]
 
 
 db.to_csv("dataBase.csv")
