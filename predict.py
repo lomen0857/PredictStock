@@ -14,6 +14,9 @@ db = pd.read_csv("dataBase.csv",encoding="utf8",index_col='predictDate')
 
 #日付準備
 thisDay = datetime.today()
+#デバッグ用
+# thisDay -= timedelta(days=2)
+
 thisDay_Formated = datetime.strftime(thisDay,'%Y-%m-%d')
 thisDay_OfTheWeek = get_day_of_week_jp(thisDay)
 

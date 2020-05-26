@@ -94,7 +94,8 @@ def _convert_dataframe(target):
 def resultStock():
 
     today = datetime.today()
-    #today = today - timedelta(days=1)
+    # デバッグ用
+    # today = today - timedelta(days=2)
     df_1321 = get_jstock(1321,start=pd.Timestamp(today),end=pd.Timestamp(today))
 
     return df_1321
